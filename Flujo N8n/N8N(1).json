@@ -1,0 +1,567 @@
+{
+  "name": "N8N",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "f694a70b-13a1-4811-bcc1-9d104dcc261c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "=https://orcid.org/0000-0000-4541-5599:{{ $json[\"lastname\"] }}&given-names={{ $json[\"firstname\"] }}\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        -160
+      ],
+      "id": "dd0f89a8-48ce-49d4-ba6e-2fcc2f3540c2",
+      "name": "ORCID"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apify.com/v2/actor-runs/rqbCUiY8XFifXmKrq?token=apify_api_FmgSyzAbPtPmGl02VKtxzGZPpdGC3n0c0HBh&firstname={{ $json.firstname }}&lastname={{ $json.lastname }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q\": [\"{{ $json.firstname }} {{ $json.lastname }}  site:scholar.google.com\"]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        48
+      ],
+      "id": "0631c953-746e-4f09-a962-19c34e508ac4",
+      "name": "Google Scholar Scraper"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actor-runs/7Ayyg7nQtBh9pQJEF?token=apify_api_FmgSyzAbPtPmGl02VKtxzGZPpdGC3n0c0HBh",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q\": [\n    \"{{ $json.firstname }} {{ $json.lastname }} {{ $json.email }} site:linkedin.com\"\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        208
+      ],
+      "id": "62969c55-ca08-47fc-b1bc-3602998d0165",
+      "name": "LinkedIN"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://google.serper.dev/search\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "cda666b79d906d437590bdfe4ba1ee9e2008ab06"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q\": \"{{$json.firstname}} {{$json.lastname}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        -368
+      ],
+      "id": "f58c0796-e1d1-44b5-8d01-e4b58884d9c7",
+      "name": "Universidad"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "operation": "getAll",
+        "limit": 20,
+        "additionalFields": {
+          "propertiesCollection": {
+            "propertiesValues": {
+              "properties": [
+                "email",
+                "hs_additional_emails",
+                "firstname",
+                "lastname",
+                "identificacin_ci"
+              ],
+              "propertyMode": "valueOnly"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        16
+      ],
+      "id": "d4dab364-ea14-47f9-8cc6-15a020c4f130",
+      "name": "Get many contacts",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "IjWcTv8sUbv90Dpj",
+          "name": "Spot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528-qwen3-8b",
+        "options": {
+          "maxTokens": 150,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        224
+      ],
+      "id": "f5284b07-7285-41a1-a87b-34ac6cdce713",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "4x8W5b87HeQAiOrV",
+          "name": "DeepSeek"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8c4802d8-029a-4c5a-b8ea-477a2309b259",
+              "name": "email",
+              "value": "={{ $('sacar parametros').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e8b4c8c4-b90a-4a70-bb69-95f53c2bddc1",
+              "name": "firstname",
+              "value": "={{ $('sacar parametros').item.json.firstname }}",
+              "type": "string"
+            },
+            {
+              "id": "261fdddd-06ab-4e21-8274-c375837c6dc9",
+              "name": "lastname",
+              "value": "={{ $('sacar parametros').item.json.lastname }}",
+              "type": "string"
+            },
+            {
+              "id": "40173ae8-7c8c-48fc-bafd-53ebbe886a21",
+              "name": "title",
+              "value": "={{ $json.organic[0].title }}",
+              "type": "string"
+            },
+            {
+              "id": "b66869a9-7221-4a89-a1f0-916bc253d094",
+              "name": "link",
+              "value": "={{ $json.organic[0].link }}",
+              "type": "string"
+            },
+            {
+              "id": "6fd9d03d-3464-4dce-a737-16f53840bfd1",
+              "name": "snippet",
+              "value": "={{ $json.organic[0].snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "fcf4175d-c8f1-4314-81ca-198895e80b5d",
+              "name": "chatInput",
+              "value": "={ \"Dada la siguiente información sobre una persona, genera una breve biografía profesional: Nombre: {{ $('sacar parametros').item.json.firstname }}  {{ $('sacar parametros').item.json.lastname }} Correo: {{ $('sacar parametros').item.json.email }} \"\n }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        -96
+      ],
+      "id": "79f0174b-613b-4c0d-a5a5-2afdd1a31e52",
+      "name": "Sacar informacion"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0fe1d439-149f-4512-bc15-3a42e88a4d3a",
+              "name": "firstname",
+              "value": "={{ $json.properties.firstname.value }}",
+              "type": "string"
+            },
+            {
+              "id": "ebc50595-c1f4-4d61-8209-fff48e8c129c",
+              "name": "lastname",
+              "value": "={{ $json.properties.lastname.value }}",
+              "type": "string"
+            },
+            {
+              "id": "be239609-1caf-45d3-8c33-12d748475ed9",
+              "name": "email",
+              "value": "={{ $json.properties.email.value }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        -112
+      ],
+      "id": "1152c0b7-f3fc-491f-8057-617a9849689b",
+      "name": "sacar parametros"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appb5zp7lYMH9o9Z0",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://airtable.com/appb5zp7lYMH9o9Z0"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblOOTP0CDmvY1zle",
+          "mode": "list",
+          "cachedResultName": "Docentes",
+          "cachedResultUrl": "https://airtable.com/appb5zp7lYMH9o9Z0/tblOOTP0CDmvY1zle"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json[\"email\"]}}",
+            "firstname": "={{$json[\"firstname\"]}}",
+            "lastname": "={{$json[\"firstname\"]}}",
+            "Title": "={{$json[\"title\"]}}",
+            "link": "={{$json[\"link\"]}}",
+            "snippet": "={{$json[\"link\"]}}",
+            "biografia": "={{ $json.chatInput }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "firstname",
+              "displayName": "firstname",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastname",
+              "displayName": "lastname",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "snippet",
+              "displayName": "snippet",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "biografia",
+              "displayName": "biografia",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2208,
+        -144
+      ],
+      "id": "9487eda3-2db0-4dbc-86b7-87c96fd65c78",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "R2vxjoFZMDiQjc4j",
+          "name": "n8n1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "={{ $json.Biografia }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1424,
+        48
+      ],
+      "id": "24fcc230-76cd-40b9-9318-73fa9bdc0057",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1840,
+        -80
+      ],
+      "id": "4ace91b1-3990-4198-af58-3a00777c0d75",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ORCID": {
+      "main": [
+        [
+          {
+            "node": "Sacar informacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Scholar Scraper": {
+      "main": [
+        [
+          {
+            "node": "Sacar informacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIN": {
+      "main": [
+        [
+          {
+            "node": "Sacar informacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Universidad": {
+      "main": [
+        [
+          {
+            "node": "Sacar informacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many contacts": {
+      "main": [
+        [
+          {
+            "node": "sacar parametros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sacar parametros": {
+      "main": [
+        [
+          {
+            "node": "Universidad",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ORCID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Scholar Scraper",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LinkedIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sacar informacion": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e806dab1-cf6c-476d-9ead-6216b1487289",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "837986eae877924e5540d5ad2b38730b9cf132649124f5a686208c41b52bc31b"
+  },
+  "id": "4QGp3HJDQ6ZsRmRP",
+  "tags": []
+}
